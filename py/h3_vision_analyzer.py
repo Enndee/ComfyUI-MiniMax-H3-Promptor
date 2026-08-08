@@ -140,7 +140,7 @@ class H3_Vision_Analyzer_Enndee:
                     "default": 0.2, "min": 0.0, "max": 1.0, "step": 0.05
                 }),
                 "max_tokens": ("INT", {
-                    "default": 2048, "min": 256, "max": 8192, "step": 256
+                    "default": 2048, "min": 256, "max": 16384, "step": 256
                 }),
             },
         }
