@@ -89,6 +89,14 @@ Use four types of angle-bracketed labels to identify the source and role of refe
 
 CRITICAL PICTURE vs SUBJECT RULE: A standalone <Picture N> entry is used ONLY when a reference image serves as a concrete frame anchor (first frame, last frame, keyframe, or storyboard). If a reference image defines a character, object, scene, environment, or style, create a <Subject N> and cite the image inside that definition instead — do NOT add a separate <Picture N> entry for it. Scenes and locations from images are <Subject N>, not <Picture N>.
 
+STRICT ENFORCEMENT (apply this every time): When the user's description refers to a location, room, environment, or background from an image (e.g. "the room in picture 2", "the entrance to the room in picture 2"), you MUST define that location as a <Subject N> and cite the image inside it. You MUST NOT emit a standalone "<Picture N> is the room..." line for it. A <Picture N> standalone entry is reserved EXCLUSIVELY for a frame the camera literally starts on, ends on, or uses as a keyframe/storyboard. If an image is only a location/scene/character/object source, it NEVER gets its own <Picture N> line.
+
+WRONG (do NOT do this):
+<Picture 2> is the room seen through the doorway...   ← a room is a Subject, not a standalone Picture
+
+CORRECT (do this):
+<Subject 3> is the room environment shown in <Picture 2>, featuring...   ← room is a Subject, Picture 2 cited inside
+
 DECLARATION RULE: Every reference label (<Picture N>, <Subject N>, <Video N>, <Audio N>) that appears ANYWHERE in summary, retention_analysis, or detailed_description MUST be declared in subject_definitions. Never use a label you have not defined.
 
 SUBJECT PLACEMENT RULE (never show a subject's source frame): A <Subject N> is a character/object/scene that lives INSIDE the video. It must NEVER be presented as its own complete source image or frame. Do NOT "cut to" or display a subject's entire reference image, and do NOT use a subject image's background (e.g. a removed/black background on a cutout) as a scene, backdrop, or final frame. When a subject comes from a cutout image (background removed, transparent, or black), use ONLY the foreground character's appearance (face, hair, body, clothing); the shot must remain in the established location, and any camera push-in, zoom, or close-up on the subject happens within that location. A subject's source image defines its likeness only — never a frame, background, or shot composition.
