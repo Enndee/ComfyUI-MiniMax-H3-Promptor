@@ -1,74 +1,59 @@
-# 🎬 ComfyUI MiniMax H3-Promptor
+# 🎬 ComfyUI MiniMax H3 Direct Promptor (Enndee)
 
-A powerful, node-based automation suite for generating cinema-production-grade prompts explicitly formatted for the **MiniMax H3 Video Generation System**.
+A single, unified ComfyUI node that generates **official-format MiniMax H3 prompts** directly from your reference images and text description — in one LLM call.
 
-This project provides a robust, decoupled architecture separating **multimodal visual analysis** from pure **text-based prompt structuring**, allowing for extreme customizability, precise scene description, and low API operating costs.
+This is a personal, streamlined fork of the MiniMax H3-Promptor. It merges the old "Vision Analyzer + Promptor" two-node pipeline into a single **Direct Multimodal Promptor** node that feeds the reference images straight to a vision LLM, avoiding the information loss that occurs when images are first transcribed to text.
 
-![ComfyUI MiniMax H3-Promptor](example_workflows/MiniMax-H3-Promptor.jpg)
+![ComfyUI MiniMax H3 Direct Promptor](example_workflows/MiniMax-H3-Promptor.jpg)
 
 ---
 
-## 🌟 The V1.0.0 Decoupled Architecture
+## ✨ What it does
 
-The pipeline consists of two nodes working in tandem to handle extreme complexity without duplicating LLM vision costs:
+The **MiniMax H3 Direct Promptor (Enndee)** node:
 
-### 1. `H3_Vision_Analyzer` 👁️
-A highly configurable multimodal analysis engine. This node acts as your virtual Director of Photography, analyzing input imagery and video based on explicit presets.
-*   **4 Image Slots + 1 Video Slot**: Analyze up to 4 images and a batch of video keyframes simultaneously.
-*   **JSON-Backed Presets**: Every media slot features a dynamic dropdown populated by an auto-generated `vision_prompts.json` file. You can instruct the VLM to analyze *only* the character, *only* the lighting, or the *entire composition*. 
-*   **Add Your Own Options**: You can add unlimited new analysis strategies by simply editing the `vision_prompts.json` file in the node directory. The dropdowns update on restart!
-*   **Multilingual Output**: Choose between English and Chinese for the analysis output language.
-*   **Outputs**: Produces a structured text-based `vision_context` that is sent to the Promptor node, completely uncoupling image arrays from the final text pipeline.
+- Takes up to **8 reference images** (and an optional video) directly as `IMAGE` inputs.
+- Sends them to a **vision-capable LLM** (OpenAI, Ollama, Gemini, or Claude) in a **single call**, together with the task type, the official H3 template documentation, and your creative description.
+- Returns a **fully structured, official-format H3 prompt** using the correct `<Picture N>` / `<Subject N>` / `<Video N>` / `<Audio N>` labels, the three-field format (non-reference tasks) or six-section format (Ref2VA), speaker IDs `(S1)`, dialogue tags `<d>[Language] ...</d>`, and `[Shot N] At MM:SS.mmm` shot notation.
 
-#### Vision Analyzer Inputs
+Because the LLM sees the actual pixels, it can correctly distinguish a **Picture** (a frame anchor) from a **Subject** (a character/object/scene), place characters inside the right location, and avoid showing a subject's cutout image as a frame.
+
+---
+
+## 🧩 Node Inputs
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `image_ref_1..4` | IMAGE | Image tensors to analyze. |
-| `mode_1..4` | COMBO | Selects the specific analysis logic from `vision_prompts.json` for each image. |
-| `video_ref` | IMAGE | Video batch tensor. Up to 4 keyframes are extracted and analyzed. |
-| `mode_video` | COMBO | Video-specific analysis logic. |
-| `output_language` | COMBO | Language for the analysis output (`English` or `Chinese`). |
+| `task_type` | COMBO | Explicit task type: T2V, I2V, I2VA, V2V, V2VA, A2V, FL2VA, Ref2VA. (No "Auto" — choose explicitly.) |
+| `description` | STRING | Your main creative description of the scene. |
+| `duration` | INT | Desired video length (4–15 seconds). |
+| `image_ref_1..8` | IMAGE | Up to 8 reference images. Mapped to `<Picture 1>` … `<Picture 8>` in order. |
+| `video_ref` | IMAGE | Optional video reference (keyframes extracted). Mapped to `<Video 1>`. |
+| `output_language` | COMBO | Output the prompt in `English` or `Chinese`. |
 | `provider` | COMBO | `openai`, `ollama`, `gemini`, or `claude`. |
-| `api_key` | STRING | API Key override (leaves `config.json` untouched). |
-| `model_name` | STRING | VLM Model override (e.g. `gpt-4o`, `gemini-2.5-flash`). |
-| `temperature` | FLOAT | Sampling temperature. Default `0.2` for precise factual analysis. |
-| `max_tokens` | INT | Maximum response tokens (256-8192). |
+| `api_key` | STRING | API key override (leaves `config.json` untouched). |
+| `model_name` | COMBO | Model to use. When Ollama is selected, this lists your registered Ollama models (like `ollama list`). |
+| `temperature` | FLOAT | Sampling temperature. Default `0.6`. |
+| `top_k` | INT | Ollama top-k sampling. Default `64` (0 = disabled). |
+| `top_p` | FLOAT | Ollama top-p nucleus sampling. Default `0.9`. |
+| `min_p` | FLOAT | Ollama min-p threshold. Default `0.05`. |
+| `repeat_penalty` | FLOAT | Ollama repeat penalty. Default `1.1`. |
+| `max_tokens` | INT | Maximum response tokens (256–16384). |
 
-### 2. `H3_Promptor` 📝
-The core structure engine. It operates at blazing speeds because it takes the user's description and the Vision Analyzer's text report to format the final H3 Prompt—meaning **it does not need to repeatedly analyze heavy images.**
-*   **Intelligent Cross-Node `Auto` Detection**: Even though this node no longer connects to images directly, the `H3_Vision_Analyzer` invisibly stamps a hidden `[MEDIA_SIGNATURE]` encoded with your exact inputs. The `H3_Promptor` silently parses this signature and automatically selects the correct generation mode:
+> The Ollama sampling parameters (`top_k`, `top_p`, `min_p`, `repeat_penalty`) are sent directly to Ollama on every call — no need to configure them in Ollama itself.
 
-| Vision Inputs | Auto-Detected Mode |
-|---|---|
-| No media connected | **T2V** — Text-to-Video |
-| 1 image | **I2V** — Image-to-Video |
-| 2 images | **FL2VA** — First & Last Frame |
-| 3-4 images | **Ref2VA** — Omni Reference |
-| Video only | **V2V** — Video-to-Video |
-| Any images + Video | **Ref2VA** — Omni Reference |
+---
 
-*   **Language Selection**: Output the final cinematic prompt strictly in **Chinese (简体中文)** or **English**, seamlessly bridging international setups.
-*   **Duration Syncing**: Define how long your video is (4-15s), and the LLM will rigorously pace the structural shot-list to match that exact timeframe at 24FPS.
+## 📏 Output limits
 
-#### Promptor Inputs
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `task_type` | COMBO | The generation mode (`Auto`, T2V, I2V, FL2VA, etc.). Auto is recommended. |
-| `description` | STRING | Your main creative description of the video scene. |
-| `duration` | INT | Desired video length (4-15 seconds). |
-| `vision_context` | STRING | Connect the output of `H3_Vision_Analyzer` here. Leave unconnected for pure T2V. |
-| `output_language` | COMBO | Output the resulting prompt in `English` or `Chinese`. |
-| `provider` | COMBO | `openai`, `ollama`, `gemini`, or `claude`. |
-| `api_key` | STRING | API Key override. |
-| `model_name` | STRING | Model override (e.g. `gpt-4o`, `claude-sonnet-4-20250514`). |
-| `temperature` | FLOAT | Sampling temperature. Default `0.7` for creative writing. |
-| `max_tokens` | INT | Maximum response tokens (256-8192). |
+- **Hard 7,000-character limit** on the final prompt (MiniMax H3's official maximum). The system prompt instructs the LLM to stay under this, and the node's post-processor enforces it as a safety net.
+- The `max_tokens` field is the **LLM's output budget** (the model that generates the prompt), not MiniMax H3's limit.
 
 ---
 
 ## 🔌 Supported LLM Providers
 
-All 4 providers are implemented as **independent, native API integrations** — no wrappers, no compatibility layers. Each provider file is fully self-contained for easy maintenance.
+All 4 providers are implemented as **independent, native API integrations** — no wrappers, no compatibility layers.
 
 | Provider | File | API Format | Default Model | Auth Method |
 |---|---|---|---|---|
@@ -77,24 +62,23 @@ All 4 providers are implemented as **independent, native API integrations** — 
 | **Gemini** | `provider_gemini.py` | Google `generateContent` | `gemini-2.5-flash` | URL `?key=` param |
 | **Claude** | `provider_claude.py` | Anthropic Messages API | `claude-sonnet-4-20250514` | `x-api-key` Header |
 
-> All providers support multimodal (image) inputs for the Vision Analyzer node.
+> For the Direct Promptor to work, the selected model must be **vision-capable** (e.g. GPT-4o, Claude, Qwen-VL, Gemma vision). If you use Ollama, pick a vision model from the dropdown.
 
 ---
 
 ## 🚀 Installation & Setup
 
-1. **Clone the Repository**:
-   Clone this repo into your `ComfyUI/custom_nodes` folder:
+1. **Clone the Repository** into your `ComfyUI/custom_nodes` folder:
    ```bash
    cd ComfyUI/custom_nodes
-   git clone https://github.com/1038lab/Comfyui-Minimax-H3-Promptor.git
+   git clone https://github.com/Enndee/ComfyUI-MiniMax-H3-Promptor.git
    ```
 2. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 3. **Configuration (`config.json`)**:
-   On first load, the node will auto-create a `config.json` inside its folder. Open it and fill in your API keys:
+   On first load, the node auto-creates a `config.json` inside its folder. Open it and fill in your API keys:
    ```json
    {
      "providers": {
@@ -104,35 +88,33 @@ All 4 providers are implemented as **independent, native API integrations** — 
      }
    }
    ```
-   > You can also override API keys directly on each node's UI without editing config.json.
+   > You can also override API keys directly on the node's UI without editing config.json.
 
 ---
 
 ## 🎨 Modding & Customization
 
-### The `vision_prompts.json` Ecosystem
-Upon the first boot of V1.0.0, a `vision_prompts.json` file is generated in the root folder. You can open this JSON file to modify or add completely new analysis strategies:
-
-```json
-{
-    "image_prompts": {
-        "Subject / Identity": "Focus exclusively on describing the main subject's appearance...",
-        "Color Palette & Texture": "Focus exclusively on the dominating colors..."
-    }
-}
-```
-Add your own custom keys — changes take effect after a ComfyUI restart.
-
 ### The System Templates
-Want to alter how the backend formats the `[SCENE]` blocks?
-Open the `templates/` directory. The `system_base.txt` controls global rules, while the other text files (e.g., `i2v.txt`) control the exact formatting structure based on the mode you selected.
+The `templates/` directory controls how the LLM formats the output:
+
+- `system_base.txt` — global rules: output format, the 7,000-char hard limit, camera language, speaker/dialogue rules, and the full-reference (Ref2VA) label rules (Picture vs Subject, declaration rule, subject placement, task-type matrix, continuous-shot vs cuts, retention markers).
+- `t2v.txt`, `i2v.txt`, `i2va.txt`, `a2v.txt`, `v2v.txt`, `v2va.txt`, `fl2va.txt`, `ref2va.txt` — task-specific formatting rules and examples.
+
+Edit these text files to change how prompts are generated. Changes take effect on the next node run (restart ComfyUI to be safe).
 
 ---
 
-##  Credits & Resources
+## 📝 Notes
 
-*   Developed by **[1038lab](https://github.com/1038lab)**.
-*   **MiniMax H3 Specifications**: Designed specifically to interface with the core structural requirements given by MiniMax.
+- This package contains **only** the **MiniMax H3 Direct Promptor (Enndee)** node. The old `H3_Promptor` and `H3_Vision_Analyzer` nodes are not included.
+- The task type is always chosen **explicitly** — there is no "Auto" option, so you always know which format will be generated.
+
+---
+
+## Credits & Resources
+
+- Based on the original **[1038lab/ComfyUI-Minimax-H3-Promptor](https://github.com/1038lab/Comfyui-Minimax-H3-Promptor)**.
+- **MiniMax H3 Specifications**: Designed to interface with the official MiniMax H3 prompt-writing guides.
 
 ## License
 

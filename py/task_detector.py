@@ -25,8 +25,8 @@ TASK_DESCRIPTIONS = {
     "Ref2VA": "Reference-to-Video-Audio (Ref2VA)"
 }
 
-# User-facing options (includes Auto)
-TASK_TYPE_OPTIONS = ["Auto"] + list(TASK_DESCRIPTIONS.values())
+# User-facing options (explicit task types only)
+TASK_TYPE_OPTIONS = list(TASK_DESCRIPTIONS.values())
 
 
 class TaskDetector:
