@@ -24,6 +24,27 @@ from .utils import log_info, log_error, tensor_to_base64
 PROVIDERS = ["openai", "ollama", "gemini", "claude"]
 
 
+def _get_ollama_model_options() -> list:
+    """Fetch the registered Ollama models (like 'ollama list') for the model dropdown."""
+    try:
+        config = get_config_manager()
+        ollama_cfg = config.get_provider_config("ollama") or {}
+        api_base = ollama_cfg.get("api_base", "http://localhost:11434")
+        default_model = ollama_cfg.get("default_model", "")
+        provider = OllamaProvider(api_base=api_base)
+        models = provider.list_models()
+        # Always include the configured default model if it's not already listed
+        if default_model and default_model not in models:
+            models.insert(0, default_model)
+        return models or ["Select a model..."]
+    except Exception:
+        return ["Select a model..."]
+
+
+# Build the model dropdown once at import time (refresh requires ComfyUI restart).
+OLLAMA_MODEL_OPTIONS = _get_ollama_model_options()
+
+
 def _create_provider(provider_name: str, config_manager, api_key_override: str = ""):
     """Create an LLM provider instance from config."""
     provider_config = config_manager.get_provider_config(provider_name)
@@ -101,9 +122,9 @@ class H3_Multimodal_Promptor_Enndee:
                     "default": "",
                     "tooltip": "API key override.",
                 }),
-                "model_name": ("STRING", {
-                    "default": "",
-                    "tooltip": "Model override (e.g. gpt-4o, claude-3-5, qwen2.5vl). Must be a vision model.",
+                "model_name": (OLLAMA_MODEL_OPTIONS, {
+                    "default": OLLAMA_MODEL_OPTIONS[0] if OLLAMA_MODEL_OPTIONS else "",
+                    "tooltip": "Model to use. When Ollama is selected, this lists your registered Ollama models (like 'ollama list').",
                 }),
                 "temperature": ("FLOAT", {
                     "default": 0.3, "min": 0.0, "max": 1.0, "step": 0.05

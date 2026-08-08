@@ -159,3 +159,16 @@ class OllamaProvider(LLMProvider):
             return response.ok
         except Exception:
             return False
+
+    def list_models(self) -> list[str]:
+        """Return the list of model names registered in Ollama (like 'ollama list')."""
+        try:
+            response = requests.get(f"{self.api_base}/api/tags", timeout=10)
+            if not response.ok:
+                return []
+            data = response.json()
+            models = data.get("models", [])
+            names = [m.get("name", "") for m in models if m.get("name")]
+            return names or []
+        except Exception:
+            return []
