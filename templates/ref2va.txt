@@ -1,0 +1,84 @@
+## Task Type: Omni Reference (Ref2VA)
+
+This is an OMNI REFERENCE (full-reference) generation task. Multiple media references (images, videos, audio) are combined. Write each section in English; preserve the original language only for dialogue and lyrics inside <d> and for text visibly present in the scene.
+
+### Output Format
+
+Write EXACTLY six sections in this order, each with its header followed by its content:
+
+1. subject_definitions:
+2. summary:
+3. retention_analysis:
+4. detailed_description:
+5. overall_soundscape:
+6. non_diegetic_music:
+
+Do NOT use other section headers such as [REFERENCE USE], [IDENTITY / CONTINUITY LOCKS], [SCENE], [DIALOGUE], [SHOT LIST], [SOURCE MASTER], [EDIT], or [PRESERVE]. Use only the six official sections listed above.
+
+### Reference labels
+
+Use exactly four types of angle-bracketed labels:
+- <Subject N> — reusable visible content abstracted from references that will move, act, or be reused in the target video: people, animals, objects, clothing, props, interfaces, visual effects, styles, actions, expressions, poses. NOT for scenes or locations.
+- <Picture N> — a reference image used as a concrete target frame, keyframe, last frame, or composition/location anchor. Use <Picture N> whenever a reference image defines a scene, background, environment, or location that must appear EXACTLY as-is (e.g. a room the camera reveals, the final composition). Do NOT reclassify such an image into a <Subject N>.
+- <Video N> — a reference video providing an editing source, continuation starting point, or whole-video temporal structure
+- <Audio N> — an audio signal that is copied or referenced
+
+CRITICAL SUBJECT vs PICTURE RULE: A scene, background, environment, or location taken from an image must be referenced as <Picture N> and preserved as a frame anchor — NEVER demoted to <Subject N>. Reserve <Subject N> for characters and movable objects that need identity continuity while they move or act. If a reference image only provides a backdrop or location the camera moves into, keep it as <Picture N> and state in detailed_description that the shot lands on that exact frame.
+
+SUBJECT PLACEMENT RULE (never show a subject's source frame): A <Subject N> is a character or object that lives INSIDE the scene. It must NEVER be presented as its own complete source image or frame. Do NOT "cut to" or display a subject's entire reference image, and do NOT use a subject image's background as a scene, backdrop, or final frame. When a subject comes from a cutout image (background removed, transparent, or black), use ONLY the foreground character's appearance (face, hair, body, clothing); the shot must remain in the established location (e.g. the room anchored by <Picture N>), and any camera push-in, zoom, or close-up on the subject happens within that location. Only <Picture N> provides frame and location anchors; a subject's source image defines the character's likeness only — never a frame, background, or shot composition.
+
+Once assigned, a label keeps the same meaning across all six sections. <Video N> and <Audio N> are numbered independently. Give each piece of referenced content a narrow, truthful role; never let "use the references" stand in for a proper definition.
+
+### detailed_description
+
+Make it as detailed and explicit as possible. For each shot, establish the current composition, subject appearance and position, environment and lighting, actions and state changes, camera movement, current sound, and the points where referenced content appears or takes effect.
+
+- Establish the overall style in one or two English sentences before [Shot 1].
+- [Shot 1] has no timestamp. Later shots use "[Shot N] At MM:SS.mmm, ..." with strictly increasing cut times.
+- Write camera movement as natural English within the shot (motion type + amplitude + speed when meaningful).
+- Give vocal sources stable IDs (S1), (S2), etc. Write dialogue inside <d> with a language tag: <d>[English] ...</d>. Preserve the exact words verbatim.
+- When a referenced subject speaks, retain both the visual reference label and the speaker ID: <Subject 2> (S1) turns toward the woman and says, <d>[English] Last summer, I went to my grandfather's house. He talked about you.</d>
+- If verbal content is only a cue within a directly reused BGM or complete soundtrack, use <Audio N> as the audible source; do not invent an (Sx).
+- Place any visibly displayed text in English double quotation marks.
+- For generation tasks, normally write 350–500 English words; dialogue-dense content prioritizes fitting the complete spoken timeline.
+
+### overall_soundscape
+
+Use 1–4 English sentences in one continuous paragraph to summarize ambient sound, physical action sounds, and non-verbal human sounds across the full video. Do not repeat dialogue, singing, or diegetic music here. Use "N/A" only for complete silence.
+
+### non_diegetic_music
+
+Use 1–3 English sentences to describe audience-only background music: instrumentation, tempo, rhythm, and dynamic changes. Do not use abstract mood words. Use "N/A" when there is no non-diegetic music.
+
+### Example Ref2VA Prompt
+
+This example shows the correct Subject vs Picture split: the coffee shop is a scene/location anchor, so it stays as <Picture 1>; the woman, man, and dog are reusable characters, so they are <Subject N>.
+
+subject_definitions:
+<Picture 1> is the coffee-shop location, featuring an exposed brick wall, an orange tufted sofa with patterned pillows, a neon sign, and a wooden coffee table. It is preserved EXACTLY as-is as the scene anchor.
+<Subject 1> is the fluffy white Samoyed in <Picture 2>, <Picture 3>, and <Picture 4>, with thick white fur, pointed ears, a dark nose, and a curved tail.
+<Subject 2> is the young blonde woman in <Video 1>, with long blonde hair and a light-pink button-down shirt with rolled-up sleeves.
+<Subject 3> is the young man in <Video 2>, with short wavy brown hair and a dark-grey hoodie with drawstrings.
+<Audio 1> is the voice-timbre reference for <Subject 2> (S1), containing a spoken English vocal layer.
+
+summary:
+[reference generation + audio reference] The target video shows <Subject 2> eating a cookie in the location anchored by <Picture 1>. <Subject 3> enters with <Subject 1>, which lunges toward the cookie. The three-shot exchange uses <Audio 1> as the voice-timbre reference for <Subject 2> and ends with a canned audience laugh.
+
+retention_analysis:
+<Picture 1> (location anchor, appears in [Shot 1], [Shot 2], [Shot 3]): fully_preserved - the exposed brick wall, orange tufted sofa, patterned pillows, neon sign, and wooden coffee table are retained exactly as-is.
+<Subject 1> (appears in [Shot 1], [Shot 2]): fully_preserved - the Samoyed's thick white fur, pointed ears, dark nose, and curved tail are retained.
+<Subject 2> (appears in [Shot 1], [Shot 2], [Shot 3]): fully_preserved - the blonde woman's identity, long hair, and light-pink shirt are retained.
+<Subject 3> (appears in [Shot 1], [Shot 2]): fully_preserved - the young man's short wavy brown hair and dark-grey hoodie are retained.
+<Audio 1>: reference - its vocal timbre guides the dialogue delivery of <Subject 2> without copying the original signal.
+
+detailed_description:
+The target video uses a realistic multi-camera sitcom style with warm indoor lighting, set in the coffee shop anchored by <Picture 1>.
+[Shot 1] A medium shot establishes the coffee shop from <Picture 1>, with its exposed brick wall, orange tufted sofa, patterned pillows, neon sign, and wooden coffee table. <Subject 2> (S1), the young woman with long blonde hair and a light-pink button-down shirt with rolled-up sleeves, sits on the sofa holding a chocolate-chip cookie. From the left, <Subject 3>, the young man with short wavy brown hair and a dark-grey hoodie with drawstrings, enters holding the leash of <Subject 1>, the thick-furred white Samoyed with pointed ears, a dark nose, and a curved tail. The dog lunges toward the cookie and pulls the leash taut. <Subject 2> (S1) jerks her hand back and, using the clear youthful voice timbre referenced from <Audio 1>, exclaims with light annoyance, <d>[English] Hey! Watch your dog!</d> She closes her lips and guards the cookie while <Subject 3> pulls the dog back.
+[Shot 2] At 00:03.000, the shot cuts to a close-up of <Subject 3> (S2), the young man in the dark-grey hoodie from Shot 1, sitting beside <Subject 2> on the sofa and holding <Subject 1> securely in his arms. <Subject 3> (S2) says in a casual young male voice with a playful tone and an easy conversational pace, <d>[English] He just likes cookies more than me.</d> He closes his mouth into an apologetic smile and strokes the dog's thick white fur.
+[Shot 3] At 00:05.000, the shot cuts to a close-up of <Subject 2> (S1), the blonde woman in the light-pink shirt from Shot 1. Her annoyance softens as she looks toward the Samoyed. <Subject 2> (S1) replies in the same clear youthful voice referenced from <Audio 1> with an amused cadence, <d>[English] Well, he has good taste at least.</d> She smiles and raises the cookie in a small toast-like gesture. A classic canned audience laugh begins immediately after the line and continues through the final frame.
+
+overall_soundscape:
+Soft indoor coffee-shop room tone continues throughout the scene.
+
+non_diegetic_music:
+N/A
