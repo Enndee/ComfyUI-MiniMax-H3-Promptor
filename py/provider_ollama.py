@@ -39,6 +39,7 @@ class OllamaProvider(LLMProvider):
         temperature: float = 0.7,
         max_tokens: int = 4096,
         model: str | None = None,
+        extra_options: dict | None = None,
     ) -> LLMResponse:
         """Send a chat request to Ollama's /api/chat endpoint."""
         model_name = self.get_model(model)
@@ -48,6 +49,16 @@ class OllamaProvider(LLMProvider):
         if base64_images:
             user_payload["images"] = base64_images
 
+        options = {
+            "temperature": temperature,
+            "num_predict": max_tokens,
+        }
+        # Merge provider-specific sampling options (top_k, top_p, min_p, repeat_penalty, ...)
+        if extra_options:
+            for k, v in extra_options.items():
+                if v is not None:
+                    options[k] = v
+
         payload = {
             "model": model_name,
             "messages": [
@@ -55,10 +66,7 @@ class OllamaProvider(LLMProvider):
                 user_payload,
             ],
             "stream": False,
-            "options": {
-                "temperature": temperature,
-                "num_predict": max_tokens,
-            },
+            "options": options,
         }
 
         log_debug(f"Ollama request → {url} | model={model_name} | temp={temperature}")

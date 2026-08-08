@@ -59,6 +59,7 @@ class LLMProvider(ABC):
         temperature: float = 0.7,
         max_tokens: int = 4096,
         model: str | None = None,
+        extra_options: dict | None = None,
     ) -> LLMResponse:
         """
         Send a chat completion request.
@@ -70,6 +71,7 @@ class LLMProvider(ABC):
             temperature: Sampling temperature (0.0 = deterministic).
             max_tokens: Maximum tokens in response.
             model: Override the default model for this request.
+            extra_options: Provider-specific sampling options (e.g. Ollama top_k, top_p, min_p, repeat_penalty).
 
         Returns:
             LLMResponse with generated content or error.

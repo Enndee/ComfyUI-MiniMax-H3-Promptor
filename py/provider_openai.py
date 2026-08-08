@@ -35,6 +35,7 @@ class OpenAIProvider(LLMProvider):
         temperature: float = 0.7,
         max_tokens: int = 4096,
         model: str | None = None,
+        extra_options: dict | None = None,
     ) -> LLMResponse:
         """Send a chat completion request to an OpenAI-compatible endpoint."""
         model_name = self.get_model(model)

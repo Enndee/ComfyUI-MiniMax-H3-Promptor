@@ -127,7 +127,23 @@ class H3_Multimodal_Promptor_Enndee:
                     "tooltip": "Model to use. When Ollama is selected, this lists your registered Ollama models (like 'ollama list').",
                 }),
                 "temperature": ("FLOAT", {
-                    "default": 0.3, "min": 0.0, "max": 1.0, "step": 0.05
+                    "default": 0.6, "min": 0.0, "max": 2.0, "step": 0.05
+                }),
+                "top_k": ("INT", {
+                    "default": 64, "min": 0, "max": 200, "step": 1,
+                    "tooltip": "Ollama top_k sampling (0 = disabled).",
+                }),
+                "top_p": ("FLOAT", {
+                    "default": 0.9, "min": 0.0, "max": 1.0, "step": 0.05,
+                    "tooltip": "Ollama top_p nucleus sampling.",
+                }),
+                "min_p": ("FLOAT", {
+                    "default": 0.05, "min": 0.0, "max": 1.0, "step": 0.01,
+                    "tooltip": "Ollama min_p minimum probability threshold.",
+                }),
+                "repeat_penalty": ("FLOAT", {
+                    "default": 1.1, "min": 0.0, "max": 2.0, "step": 0.05,
+                    "tooltip": "Ollama repeat penalty.",
                 }),
                 "max_tokens": ("INT", {
                     "default": 4096, "min": 256, "max": 16384, "step": 256
@@ -158,7 +174,11 @@ class H3_Multimodal_Promptor_Enndee:
         provider: str = "openai",
         api_key: str = "",
         model_name: str = "",
-        temperature: float = 0.3,
+        temperature: float = 0.6,
+        top_k: int = 64,
+        top_p: float = 0.9,
+        min_p: float = 0.05,
+        repeat_penalty: float = 1.1,
         max_tokens: int = 4096,
     ):
         """Generate a MiniMax H3 structured prompt directly from images + text."""
@@ -250,6 +270,14 @@ class H3_Multimodal_Promptor_Enndee:
                 f"temp={temperature} | images={len(base64_images)}"
             )
 
+            # Build provider-specific sampling options (used by Ollama)
+            extra_options = {
+                "top_k": top_k,
+                "top_p": top_p,
+                "min_p": min_p,
+                "repeat_penalty": repeat_penalty,
+            }
+
             response = llm.chat(
                 system_prompt=system_prompt,
                 user_message=user_message,
@@ -257,6 +285,7 @@ class H3_Multimodal_Promptor_Enndee:
                 temperature=temperature,
                 max_tokens=max_tokens,
                 model=model_override,
+                extra_options=extra_options,
             )
 
             if not response.success:

@@ -38,6 +38,7 @@ class ClaudeProvider(LLMProvider):
         temperature: float = 0.7,
         max_tokens: int = 4096,
         model: str | None = None,
+        extra_options: dict | None = None,
     ) -> LLMResponse:
         """Send a messages request to the Anthropic API."""
         model_name = self.get_model(model)
