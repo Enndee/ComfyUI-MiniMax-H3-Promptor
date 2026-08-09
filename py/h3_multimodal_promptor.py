@@ -95,9 +95,9 @@ class H3_Multimodal_Promptor_Enndee:
                     "default": "",
                     "tooltip": "Your main creative description of the scene.",
                 }),
-                "duration": ("INT", {
-                    "default": 5, "min": 4, "max": 15, "step": 1,
-                    "tooltip": "Valid duration for MiniMax H3 is 4-15 seconds.",
+                "duration": ("FLOAT", {
+                    "default": 5.0, "min": 4.0, "max": 15.0, "step": 0.1,
+                    "tooltip": "Video length in seconds (4-15). Accepts INT or FLOAT.",
                 }),
             },
             "optional": {
@@ -160,7 +160,7 @@ class H3_Multimodal_Promptor_Enndee:
         self,
         task_type: str,
         description: str,
-        duration: int,
+        duration: float,
         image_ref_1=None,
         image_ref_2=None,
         image_ref_3=None,
@@ -248,13 +248,17 @@ class H3_Multimodal_Promptor_Enndee:
 
             media_header = "\n".join(f"- {note}" for note in media_notes) or "- None"
 
+            # Normalize duration to a float and compute approximate frames (24 FPS)
+            duration_f = float(duration)
+            approx_frames = int(round(duration_f * 24))
+
             user_message = (
                 f"Generate a MiniMax {detected_type} prompt.\n\n"
                 f"Reference media mapping (use these labels exactly as shown):\n"
                 f"{media_header}\n\n"
                 f"Primary Target User Description:\n{description}\n\n"
-                f"Constraint: The video will be {duration} seconds long "
-                f"(approx. {duration * 24} frames). Pace the [SCENE]/[Shot] descriptions accordingly.\n\n"
+                f"Constraint: The video will be {duration_f:.2f} seconds long "
+                f"(approx. {approx_frames} frames). Pace the [SCENE]/[Shot] descriptions accordingly.\n\n"
                 f"CRITICAL LANGUAGE CONSTRAINT:\n"
                 f"You MUST write the ENTIRE OUTPUT PROMPT in {lang_constraint}."
             )
